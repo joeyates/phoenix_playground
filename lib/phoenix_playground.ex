@@ -31,6 +31,8 @@ defmodule PhoenixPlayground do
 
     * `:port` - port to listen on, defaults to: `4000`.
 
+    * `:ip` - the IP to listen on, defaults to: `127.0.0.1`.
+
     * `:open_browser` - whether to open the browser on start, defaults to `true`.
 
     * `:child_specs` - child specs to run in Phoenix Playground supervision tree. The playground
@@ -57,6 +59,20 @@ defmodule PhoenixPlayground do
         |> Keyword.put(:plug, router)
       else
         options
+      end
+
+    options =
+      if ip = options[:ip] do
+        case ip |> to_charlist() |> :inet.parse_address() do
+          {:ok, tuple} ->
+            Keyword.put(options, :ip, tuple)
+          _ ->
+            IO.warn("failed to parse :ip option '#{ip}' using default value of '127.0.0.1'")
+
+            Keyword.put(options, :ip, {127, 0, 0, 1})
+        end
+      else
+        Keyword.put(options, :ip, {127, 0, 0, 1})
       end
 
     if plug = options[:plug] do
@@ -121,6 +137,7 @@ defmodule PhoenixPlayground do
         :controller,
         :plug,
         :file,
+        :ip,
         child_specs: [],
         port: 4000,
         open_browser: true
@@ -186,7 +203,7 @@ defmodule PhoenixPlayground do
     endpoint_options =
       [
         adapter: Bandit.PhoenixAdapter,
-        http: [ip: {127, 0, 0, 1}, port: options[:port]],
+        http: [ip: options[:ip], port: options[:port]],
         server: !!options[:port],
         live_view: [signing_salt: @signing_salt],
         secret_key_base: @secret_key_base,
