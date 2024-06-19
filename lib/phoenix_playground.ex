@@ -33,6 +33,8 @@ defmodule PhoenixPlayground do
 
     * `:ip` - the IP to listen on, defaults to: `127.0.0.1`.
 
+    * `:host` - the origin host to accept, defaults to: `localhost`.
+
     * `:open_browser` - whether to open the browser on start, defaults to `true`.
 
     * `:child_specs` - child specs to run in Phoenix Playground supervision tree. The playground
@@ -140,7 +142,8 @@ defmodule PhoenixPlayground do
         :ip,
         child_specs: [],
         port: 4000,
-        open_browser: true
+        open_browser: true,
+        host: "localhost"
       ])
 
     child_specs = Keyword.fetch!(options, :child_specs)
@@ -203,6 +206,7 @@ defmodule PhoenixPlayground do
     endpoint_options =
       [
         adapter: Bandit.PhoenixAdapter,
+        url: [host: options[:host]],
         http: [ip: options[:ip], port: options[:port]],
         server: !!options[:port],
         live_view: [signing_salt: @signing_salt],
